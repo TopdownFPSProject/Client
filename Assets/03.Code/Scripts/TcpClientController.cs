@@ -59,11 +59,11 @@ public class TcpClientController : Singleton<TcpClientController>
     {
         messageHandlers = new()
         {
-            ["connected"] = new ConnectHandler(),
-            ["playerList"] = new ConnectHandler(),
-            ["playerJoined"] = new ConnectHandler(),
+            //["connected"] = new ConnectHandler(),
+            ["playerList"] = new PlayerListHandler(),
+            ["playerJoined"] = new PlayerJoinedHandler(),
             ["disconnected"] = new DisconnectHandler(),
-            ["position"] = new PositionHandler(),
+            ["syncPosition"] = new SyncPositionHandler(),
             ["fire"] = new FireHandler(),
         };
     }
@@ -98,6 +98,24 @@ public class TcpClientController : Singleton<TcpClientController>
         SendMessageToServer(msg);
     }
 
+    public void SendMoveInput(Vector3 dir, bool isMoving)
+    {
+        NetworkMessage msg = new NetworkMessage
+        {
+            command = "moveInput",
+            id = myId,
+            data = new Dictionary<string, object>
+            {
+            { "dirX", dir.x },
+            { "dirY", dir.y },
+            { "dirZ", dir.z },
+            { "isMoving", isMoving }
+            }
+        };
+
+        SendMessageToServer(msg);
+    }
+
 #region 서버 통신 및 수신
     private async void SendMessageToServer(NetworkMessage msg)
     {
@@ -126,6 +144,7 @@ public class TcpClientController : Singleton<TcpClientController>
         if (messageHandlers.TryGetValue(msg.command, out IMessageHandler handler))
         {
             handler.Handle(msg);
+            DebugManager.Instance.Debug($"[서버에서 넘어온 JSON] : {json}");
         }
         else
         {
