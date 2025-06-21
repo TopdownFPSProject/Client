@@ -7,13 +7,13 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class NetworkMessage
-{
-    public string command;
-    public string id;
-    public string target = "all"; //기본 all
-    public Dictionary<string, object> data = new();
-}
+//public class NetworkMessage
+//{
+//    public string command;
+//    public string id;
+//    public string target = "all"; //기본 all
+//    public Dictionary<string, object> data = new();
+//}
 
 
 public class TcpClientController : Singleton<TcpClientController>
@@ -35,8 +35,9 @@ public class TcpClientController : Singleton<TcpClientController>
     private readonly Queue<string> messageQueue = new();
     private Dictionary<string, IMessageHandler> messageHandlers;
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         connectBtn.onClick.AddListener(OnClickConnectBtn);
         InitMessageHandler();
     }
@@ -49,8 +50,8 @@ public class TcpClientController : Singleton<TcpClientController>
         {
             while (messageQueue.Count > 0)
             {
-                string json = messageQueue.Dequeue();
-                HandleServerMessage(json);
+                string msg = messageQueue.Dequeue();
+                HandleServerMessage(msg);
             }
         }
     }
@@ -59,12 +60,12 @@ public class TcpClientController : Singleton<TcpClientController>
     {
         messageHandlers = new()
         {
-            ["connected"] = new ConnectHandler(),
-            ["playerList"] = new ConnectHandler(),
-            ["playerJoined"] = new ConnectHandler(),
+            //["connected"] = new ConnectHandler(),
+            ["playerList"] = new PlayerListHandler(),
+            ["playerJoined"] = new PlayerJoinedHandler(),
             ["disconnected"] = new DisconnectHandler(),
-            ["position"] = new PositionHandler(),
-            ["fire"] = new FireHandler(),
+            //["syncPosition"] = new SyncPositionHandler(),
+            //["fire"] = new FireHandler(),
         };
     }
 
@@ -75,7 +76,6 @@ public class TcpClientController : Singleton<TcpClientController>
             client = new TcpClient(serverIP, port);
             isConnected = true;
             stream = client.GetStream();
-            myId = nickInput.text;
 
             SendConnectMessage();
 
@@ -88,22 +88,49 @@ public class TcpClientController : Singleton<TcpClientController>
         }
     }
 
+    #region 서버에게 보내는 메시지
     private void SendConnectMessage()
     {
-        var msg = new NetworkMessage()
-        {
-            command = "connected",
-            id = myId,
-        };
+        string msg = $"connected;{myId};";
         SendMessageToServer(msg);
     }
 
-#region 서버 통신 및 수신
-    private async void SendMessageToServer(NetworkMessage msg)
+    private void SendDisconnectMessage(string id)
+    {
+        string msg = $"disconnected;{id};";
+        SendMessageToServer(msg);
+    }
+    #endregion
+
+    private void OnApplicationQuit()
+    {
+        SendDisconnectMessage(myId);
+    }
+
+    //public void SendMoveInput(Vector3 dir, bool isMoving)
+    //{
+    //    NetworkMessage msg = new NetworkMessage
+    //    {
+    //        command = "moveInput",
+    //        id = myId,
+    //        data = new Dictionary<string, object>
+    //        {
+    //        { "dirX", dir.x },
+    //        { "dirY", dir.y },
+    //        { "dirZ", dir.z },
+    //        { "isMoving", isMoving }
+    //        }
+    //    };
+
+    //    SendMessageToServer(msg);
+    //}
+
+    #region 서버 통신 및 수신
+    private async void SendMessageToServer(string msg)
     {
         if (stream == null) return;
-        string json = JsonUtility.ToJson(msg);
-        byte[] body = System.Text.Encoding.UTF8.GetBytes(json);
+
+        byte[] body = System.Text.Encoding.UTF8.GetBytes(msg);
         int length = body.Length;
         byte[] header = BitConverter.GetBytes(length);
         byte[] packet = new byte[4 + length];
@@ -114,26 +141,29 @@ public class TcpClientController : Singleton<TcpClientController>
         await stream.WriteAsync(packet, 0, packet.Length);
     }
 
-    private void HandleServerMessage(string json)
+    private void HandleServerMessage(string msg)
     {
-        NetworkMessage msg = JsonUtility.FromJson<NetworkMessage>(json);
-        if (msg == null || string.IsNullOrEmpty(msg.command))
+        if (string.IsNullOrEmpty(msg))
         {
-            DebugManager.Instance.Debug("[메시지 파싱 오류]");
+            DebugManager.Instance.Debug("[메시지 없음]");
             return;
         }
 
-        if (messageHandlers.TryGetValue(msg.command, out IMessageHandler handler))
+        //빈 문자열은 제거
+        string[] parts = msg.Split(';');
+
+        if (messageHandlers.TryGetValue(parts[0], out IMessageHandler handler))
         {
+            DebugManager.Instance.Debug($"[서버에서 넘어온 메시지] : {msg}");
             handler.Handle(msg);
         }
         else
         {
-            DebugManager.Instance.Debug($"[알 수 없는 명령] : {msg.command}");
+            DebugManager.Instance.Debug($"[알 수 없는 명령] : {msg}");
         }
     }
-#endregion
 
+    //서버 메시지 받는 함수
     private async void ReceiveLoop()
     {
         byte[] buffer = new byte[4096];
@@ -165,11 +195,11 @@ public class TcpClientController : Singleton<TcpClientController>
                     bodyRead += read;
                 }
 
-                string json = System.Text.Encoding.UTF8.GetString(body);
+                string msg = System.Text.Encoding.UTF8.GetString(body);
 
                 lock (messageQueue)
                 {
-                    messageQueue.Enqueue(json);
+                    messageQueue.Enqueue(msg);
                 }
             }
         }
@@ -178,9 +208,11 @@ public class TcpClientController : Singleton<TcpClientController>
             DebugManager.Instance.Debug($"[Receive 예외] {e.Message}");
         }
     }
+#endregion
 
     private void OnClickConnectBtn()
     {
+        myId = nickInput.text;
         ConnectToServer();
     }
 }

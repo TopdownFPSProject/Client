@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class FireHandler : IMessageHandler
 {
-    public void Handle(NetworkMessage msg)
+    public void Handle(string data)
     {
         throw new System.NotImplementedException();
     }

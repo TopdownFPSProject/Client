@@ -4,5 +4,5 @@ using UnityEngine;
 
 public interface IMessageHandler
 {
-    void Handle(NetworkMessage msg);
+    void Handle(string data);
 }
