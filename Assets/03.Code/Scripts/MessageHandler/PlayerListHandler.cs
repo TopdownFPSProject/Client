@@ -6,22 +6,30 @@ using UnityEngine;
 //새로운 클라이언트가 들어올때 기존 클라이언트의 정보를 보내는 핸들러
 public class PlayerListHandler : IMessageHandler
 {
-    public void Handle(NetworkMessage msg)
+    public void Handle(string data)
     {
-        if (msg.data.TryGetValue("players", out var playersObj) && playersObj is List<object> playerList)
+        if (!data.StartsWith("playerList;"))
         {
-            foreach (var player in playerList)
-            {
-                if (player is Dictionary<string, object> dict)
-                {
-                    string id = dict["id"].ToString();
-                    float x = Convert.ToSingle(dict["x"]);
-                    float y = Convert.ToSingle(dict["y"]);
-                    float z = Convert.ToSingle(dict["z"]);
-                    Vector3 pos = new Vector3(x, y, z);
-                    PlayerSpawnManager.Instance.MakePlayerPrefab(id, pos);
-                }
-            }
+            DebugManager.Instance.Debug($"[커멘드 이상] : {data}");
+            return;
+        }
+
+        string body = data.Substring("playerList;".Length);
+        string[] playerData = body.Split('|', StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (var p in playerData)
+        {
+            string[] parts = p.Split(',');
+            string id = parts[0];
+            float x = float.Parse(parts[1]);
+            float y = float.Parse(parts[2]);
+            float z = float.Parse(parts[3]);
+
+            Vector3 pos = new Vector3(x, y, z);
+
+            DebugManager.Instance.Debug($"플레이어 {id} 위치: ({x}, {y}, {z})");
+
+            PlayerSpawnManager.Instance.MakePlayerPrefab(id, pos);
         }
     }
 }

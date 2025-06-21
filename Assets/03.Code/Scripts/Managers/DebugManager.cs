@@ -10,6 +10,11 @@ public class DebugManager : Singleton<DebugManager>
     [SerializeField] private ScrollRect scrollRect;
     [SerializeField] private RectTransform rectTransform;
 
+    protected override void Awake()
+    {
+        base.Awake();
+    }
+
     public void Debug(string text)
     {
         debugText.text += debugText.text == "" ? text : "\n" + text;

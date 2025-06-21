@@ -6,15 +6,26 @@ using UnityEngine;
 //새로운 클라이언트가 들어올때 기존 클라이언트에게 보내는 핸들러
 public class PlayerJoinedHandler : IMessageHandler
 {
-    public void Handle(NetworkMessage msg)
+    public void Handle(string data)
     {
-        DebugManager.Instance.Debug(msg.command);
-        string id = msg.id;
-        float x = msg.data.ContainsKey("x") ? Convert.ToSingle(msg.data["x"]) : 0;
-        float y = msg.data.ContainsKey("y") ? Convert.ToSingle(msg.data["y"]) : 0;
-        float z = msg.data.ContainsKey("z") ? Convert.ToSingle(msg.data["z"]) : 0;
+        if (!data.StartsWith("playerJoined;"))
+        {
+            DebugManager.Instance.Debug($"[커멘드 이상] : {data}");
+            return;
+        }
+
+        string body = data.Substring("playerJoined;".Length);
+        string[] parts = body.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+        string id = parts[0];
+        float x = float.Parse(parts[1]);
+        float y = float.Parse(parts[2]);
+        float z = float.Parse(parts[3]);
+
         Vector3 pos = new Vector3(x, y, z);
 
         PlayerSpawnManager.Instance.MakePlayerPrefab(id, pos);
+
+        DebugManager.Instance.Debug($"플레이어 {id} 위치: ({x}, {y}, {z})");
     }
 }

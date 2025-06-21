@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class ConnectHandler : IMessageHandler
 {
-    public void Handle(NetworkMessage msg)
+    public void Handle(string data)
     {
         // playerList 메시지 처리
         //if (msg.command == "playerList")

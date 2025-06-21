@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class DisconnectHandler : IMessageHandler
 {
-    public void Handle(NetworkMessage msg)
+    public void Handle(string data)
     {
-        if (PlayerSpawnManager.Instance.Players.ContainsKey(msg.id))
-        {
-            PlayerSpawnManager.Instance.DestroyPlayerObj(msg.id);
-        }
+        string[] parts = data.Split(';', System.StringSplitOptions.RemoveEmptyEntries);
+        string id = parts[1];
+
+        PlayerSpawnManager.Instance.DestroyPlayerObj(id);
     }
 }

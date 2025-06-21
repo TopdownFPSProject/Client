@@ -12,25 +12,36 @@ public class PlayerSpawnManager : Singleton<PlayerSpawnManager>
     private Dictionary<string, Players> players = new();
     public Dictionary<string, Players> Players { get { return players; } }
 
+    protected override void Awake()
+    {
+        base.Awake();
+    }
+
     public void MakePlayerPrefab(string id, Vector3 position)
     {
-        if (players.ContainsKey(id)) return;
+        if (players.ContainsKey(id))
+        {
+            DebugManager.Instance.Debug($"[아이디 있음]");
+            return;
+        }
 
+        DebugManager.Instance.Debug($"id : {id}");
+        DebugManager.Instance.Debug($"id : {TcpClientController.Instance.MyId}");
         if (id == TcpClientController.Instance.MyId)
         {
+            DebugManager.Instance.Debug($"[내 플레이어 생성]");
             Player player = Instantiate(playerObj).GetComponent<Player>();
             player.transform.position = playerSpawnPos;
             player.Init(id, position);
             players[id] = player as Players;
-            DebugManager.Instance.Debug($"[내 플레이어 생성]");
         }
         else
         {
+            DebugManager.Instance.Debug($"[플레이어{id} 생성]");
             OtherPlayer otherPlayer = Instantiate(otherPlayerObj).GetComponent<OtherPlayer>();
             otherPlayer.transform.position = position;
             otherPlayer.Init(id, position);
             players[id] = otherPlayer as Players;
-            DebugManager.Instance.Debug($"[플레이어{id} 생성]");
         }
     }
 

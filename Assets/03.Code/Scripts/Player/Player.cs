@@ -27,7 +27,7 @@ public class Player : Players
 
         if (isMoving)
         {
-            TcpClientController.Instance.SendMoveInput(dir.normalized, isMoving);
+            //TcpClientController.Instance.SendMoveInput(dir.normalized, isMoving);
         }
     }
 }
