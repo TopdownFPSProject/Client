@@ -15,7 +15,6 @@ using UnityEngine.UI;
 //    public Dictionary<string, object> data = new();
 //}
 
-
 public class TcpClientController : Singleton<TcpClientController>
 {
     //서버관련
@@ -60,11 +59,10 @@ public class TcpClientController : Singleton<TcpClientController>
     {
         messageHandlers = new()
         {
-            //["connected"] = new ConnectHandler(),
             ["playerList"] = new PlayerListHandler(),
             ["playerJoined"] = new PlayerJoinedHandler(),
             ["disconnected"] = new DisconnectHandler(),
-            //["syncPosition"] = new SyncPositionHandler(),
+            ["syncPosition"] = new SyncPositionHandler(),
             //["fire"] = new FireHandler(),
         };
     }
@@ -100,30 +98,19 @@ public class TcpClientController : Singleton<TcpClientController>
         string msg = $"disconnected;{id};";
         SendMessageToServer(msg);
     }
+
+    public void SendMoveInput(Vector2 dir, bool isMoving)
+    {
+        string msg = $"moveInput;{myId},{dir.x},{dir.y},{isMoving}";
+
+        SendMessageToServer(msg);
+    }
     #endregion
 
     private void OnApplicationQuit()
     {
         SendDisconnectMessage(myId);
     }
-
-    //public void SendMoveInput(Vector3 dir, bool isMoving)
-    //{
-    //    NetworkMessage msg = new NetworkMessage
-    //    {
-    //        command = "moveInput",
-    //        id = myId,
-    //        data = new Dictionary<string, object>
-    //        {
-    //        { "dirX", dir.x },
-    //        { "dirY", dir.y },
-    //        { "dirZ", dir.z },
-    //        { "isMoving", isMoving }
-    //        }
-    //    };
-
-    //    SendMessageToServer(msg);
-    //}
 
     #region 서버 통신 및 수신
     private async void SendMessageToServer(string msg)
