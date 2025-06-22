@@ -7,7 +7,6 @@ public class SyncPositionHandler : IMessageHandler
 {
     public void Handle(string data)
     {
-        DebugManager.Instance.Debug("1");
         string body = data.Substring("syncPosition;".Length);
         string[] posData = body.Split(',', StringSplitOptions.RemoveEmptyEntries);
         string id = posData[0];
