@@ -101,10 +101,10 @@ public class TcpClientController : Singleton<TcpClientController>
         SendMessageToServer(msg);
     }
 
-    public void SendMyPosition(Vector3 dir)
+    public void SendMyInputMessage(string msg)
     {
         if (stream == null) return;
-        string msg = $"position;{myId};{dir.x};{dir.y};{dir.z}";
+        //string msg = $"position;{myId};{dir.x};{dir.y};{dir.z}";
 
         SendMessageToServer(msg);
     }
