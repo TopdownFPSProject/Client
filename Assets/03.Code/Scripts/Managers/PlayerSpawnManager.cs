@@ -12,6 +12,9 @@ public class PlayerSpawnManager : Singleton<PlayerSpawnManager>
     private Dictionary<string, Players> players = new();
     public Dictionary<string, Players> Players { get { return players; } }
 
+    private Dictionary<string, OtherPlayer> otherPlayers = new();
+    public Dictionary<string, OtherPlayer> OtherPlayers { get { return otherPlayers; } }
+
     protected override void Awake()
     {
         base.Awake();
@@ -25,8 +28,6 @@ public class PlayerSpawnManager : Singleton<PlayerSpawnManager>
             return;
         }
 
-        DebugManager.Instance.Debug($"id : {id}");
-        DebugManager.Instance.Debug($"id : {TcpClientController.Instance.MyId}");
         if (id == TcpClientController.Instance.MyId)
         {
             DebugManager.Instance.Debug($"[내 플레이어 생성]");
@@ -37,11 +38,12 @@ public class PlayerSpawnManager : Singleton<PlayerSpawnManager>
         }
         else
         {
-            DebugManager.Instance.Debug($"[플레이어{id} 생성]");
+            DebugManager.Instance.Debug($"[상대 플레이어{id} 생성]");
             OtherPlayer otherPlayer = Instantiate(otherPlayerObj).GetComponent<OtherPlayer>();
             otherPlayer.transform.position = position;
             otherPlayer.Init(id, position);
             players[id] = otherPlayer as Players;
+            otherPlayers[id] = otherPlayer;
         }
     }
 
@@ -53,6 +55,7 @@ public class PlayerSpawnManager : Singleton<PlayerSpawnManager>
             {
                 Destroy(players[id].gameObject);
                 players.Remove(id);
+                otherPlayers.Remove(id);
             }
         }
         catch (Exception e)

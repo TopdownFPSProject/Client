@@ -7,18 +7,17 @@ public class SyncPositionHandler : IMessageHandler
 {
     public void Handle(string data)
     {
-        string body = data.Substring("syncPosition;".Length);
-        string[] posData = body.Split(',', StringSplitOptions.RemoveEmptyEntries);
-        string id = posData[0];
+        string[] posData = data.Split(';', StringSplitOptions.RemoveEmptyEntries);
 
-        float x = Convert.ToSingle(posData[1]);
-        float z = Convert.ToSingle(posData[2]);
-        Vector2 pos = new Vector2(x, z);
+        string id = posData[1];
+        float x = Convert.ToSingle(posData[2]);
+        float y = Convert.ToSingle(posData[3]);
+        float z = Convert.ToSingle(posData[4]);
 
-        if (PlayerSpawnManager.Instance.Players.TryGetValue(id, out Players player))
+        if (id != TcpClientController.Instance.MyId && PlayerSpawnManager.Instance.OtherPlayers.TryGetValue(id, out OtherPlayer p))
         {
-            Vector3 newPos = new Vector3(x, player.transform.position.y, z);
-            player.SetTargetPosition(newPos);
+            Vector3 newPos = new Vector3(x, y, z);
+            p.SetTargetPosition(newPos);
         }
     }
 }

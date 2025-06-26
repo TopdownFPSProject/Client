@@ -62,8 +62,8 @@ public class TcpClientController : Singleton<TcpClientController>
             ["playerList"] = new PlayerListHandler(),
             ["playerJoined"] = new PlayerJoinedHandler(),
             ["disconnected"] = new DisconnectHandler(),
-            ["syncPosition"] = new SyncPositionHandler(),
-            //["fire"] = new FireHandler(),
+            ["position"] = new SyncPositionHandler(),
+            ["fire"] = new FireHandler(),
         };
     }
 
@@ -89,19 +89,30 @@ public class TcpClientController : Singleton<TcpClientController>
     #region 서버에게 보내는 메시지
     private void SendConnectMessage()
     {
+        if (stream == null) return;
         string msg = $"connected;{myId};";
         SendMessageToServer(msg);
     }
 
     private void SendDisconnectMessage(string id)
     {
+        if (stream == null) return;
         string msg = $"disconnected;{id};";
         SendMessageToServer(msg);
     }
 
-    public void SendMoveInput(Vector2 dir, bool isMoving)
+    public void SendMyPosition(Vector3 dir)
     {
-        string msg = $"moveInput;{myId},{dir.x},{dir.y},{isMoving}";
+        if (stream == null) return;
+        string msg = $"position;{myId};{dir.x};{dir.y};{dir.z}";
+
+        SendMessageToServer(msg);
+    }
+
+    public void SendFireMessage(string time, Vector3 position, Vector3 dir)
+    {
+        if (stream == null) return;
+        string msg = $"fire;{myId};{position.x};{position.y};{position.z};{dir.x};{dir.y};{dir.z};{time}";
 
         SendMessageToServer(msg);
     }
@@ -117,6 +128,7 @@ public class TcpClientController : Singleton<TcpClientController>
     {
         if (stream == null) return;
 
+        DebugManager.Instance.Debug($"[서버로 보낸 메시지] : {msg}");
         byte[] body = System.Text.Encoding.UTF8.GetBytes(msg);
         int length = body.Length;
         byte[] header = BitConverter.GetBytes(length);
@@ -137,7 +149,7 @@ public class TcpClientController : Singleton<TcpClientController>
         }
 
         //빈 문자열은 제거
-        string[] parts = msg.Split(';');
+        string[] parts = msg.Split(';', StringSplitOptions.RemoveEmptyEntries);
 
         if (messageHandlers.TryGetValue(parts[0], out IMessageHandler handler))
         {

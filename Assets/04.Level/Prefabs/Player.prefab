@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 5779644239135880981}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Hitable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -123,7 +123,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26604db36e9541a4d9a0993cb13865b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  moveSpeed: 5
+  id: 
   idText: {fileID: 7954203898596133608}
+  sendInterval: 0.05
 --- !u!54 &5779644239135880981
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -149,7 +152,7 @@ Rigidbody:
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 80
+  m_Constraints: 116
   m_CollisionDetection: 0
 --- !u!1 &6501168349144412575
 GameObject:
