@@ -14,7 +14,7 @@ public class Player : Players
     //private float minSpeed = 0.02f;
 
     //메시지 전송
-    [SerializeField] private float sendInterval = 0.05f;
+    [SerializeField] private float sendInterval = 0.033f;
     private float sendTimer = 0f;
 
     //위치
@@ -45,11 +45,25 @@ public class Player : Players
 
         //Move(dir);
 
+        // sendInterval = 0.033f; // 33ms (30fps)
         if (dir != Vector3.zero)
         {
-            Vector3 direction = dir.normalized;
-            string msg = $"input;{id};{dir.x};{dir.y};{dir.z}";
-            TcpClientController.Instance.SendMyInputMessage(msg);
+            sendTimer += Time.deltaTime;
+
+            // 0.25초마다 한 번씩 전송
+            if (sendTimer >= sendInterval)
+            {
+                sendTimer = 0f;
+
+                Vector3 direction = dir.normalized;
+                string msg = $"input;{id};{dir.x};{dir.y};{dir.z}";
+                TcpClientController.Instance.SendMyInputMessage(msg);
+            }
+        }
+        else
+        {
+            // 키 입력이 없으면 타이머 초기화 (연속된 이동이 아닐 경우)
+            sendTimer = 0f;
         }
     }
 

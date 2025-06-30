@@ -127,7 +127,6 @@ MonoBehaviour:
   snapThreshold: 1
   id: 
   idText: {fileID: 7954203898596133608}
-  lerpSpeed: 0.1
 --- !u!1 &6501168349144412575
 GameObject:
   m_ObjectHideFlags: 0
