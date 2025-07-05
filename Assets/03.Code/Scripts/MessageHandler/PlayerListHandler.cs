@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 //새로운 클라이언트가 들어올때 기존 클라이언트의 정보를 보내는 핸들러
+[Command("playerList")]
 public class PlayerListHandler : IMessageHandler
 {
     public void Handle(string data)

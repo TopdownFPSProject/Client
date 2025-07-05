@@ -2,10 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using SharedPacketLib;
 
 //public class NetworkMessage
 //{
@@ -31,7 +33,7 @@ public class TcpClientController : Singleton<TcpClientController>
     public string MyId => myId;
 
     private bool isConnected = false;
-    private readonly Queue<string> messageQueue = new();
+    private readonly Queue<byte[]> messageQueue = new();
     private Dictionary<string, IMessageHandler> messageHandlers;
 
     protected override void Awake()
@@ -49,7 +51,7 @@ public class TcpClientController : Singleton<TcpClientController>
         {
             while (messageQueue.Count > 0)
             {
-                string msg = messageQueue.Dequeue();
+                byte[] msg = messageQueue.Dequeue();
                 HandleServerMessage(msg);
             }
         }
@@ -57,14 +59,16 @@ public class TcpClientController : Singleton<TcpClientController>
 
     private void InitMessageHandler()
     {
-        messageHandlers = new()
+        Type[] allType = Assembly.GetExecutingAssembly().GetTypes();
+        foreach (Type handlerType in allType)
         {
-            ["playerList"] = new PlayerListHandler(),
-            ["playerJoined"] = new PlayerJoinedHandler(),
-            ["disconnected"] = new DisconnectHandler(),
-            ["position"] = new SyncPositionHandler(),
-            ["fire"] = new FireHandler(),
-        };
+            if (!typeof(IMessageHandler).IsAssignableFrom(handlerType)) continue;
+            CommandAttribute ca = (CommandAttribute)Attribute.GetCustomAttribute(handlerType, typeof(CommandAttribute));
+            if (ca == null) continue;
+
+            IMessageHandler handlerInstance = (IMessageHandler)Activator.CreateInstance(handlerType);
+            messageHandlers[ca.Command] = handlerInstance;
+        }
     }
 
     private void ConnectToServer()
@@ -90,23 +94,37 @@ public class TcpClientController : Singleton<TcpClientController>
     private void SendConnectMessage()
     {
         if (stream == null) return;
-        string msg = $"connected;{myId};";
-        SendMessageToServer(msg);
+        C_ConnectPacket cs = new C_ConnectPacket
+        {
+            Command = "connected",
+            Id = myId
+        };
+        SendMessageToServer(packet);
     }
 
     private void SendDisconnectMessage(string id)
     {
         if (stream == null) return;
-        string msg = $"disconnected;{id};";
-        SendMessageToServer(msg);
+        var packet = new DisconnectPacket
+        {
+            Command = "disconnected",
+            Id = myId
+        };
+        SendMessageToServer(packet);
     }
 
-    public void SendMyInputMessage(string msg)
+    public void SendMyInputMessage(Vector3 dir)
     {
         if (stream == null) return;
-        //string msg = $"position;{myId};{dir.x};{dir.y};{dir.z}";
-
-        SendMessageToServer(msg);
+        var packet = new PositionPacket
+        {
+            Command = "input",
+            Id = myId,
+            X = dir.x,
+            Y = dir.y,
+            Z = dir.z
+        };
+        SendMessageToServer(packet);
     }
 
     public void SendFireMessage(string time, Vector3 position, Vector3 dir)
@@ -124,41 +142,40 @@ public class TcpClientController : Singleton<TcpClientController>
     }
 
     #region 서버 통신 및 수신
-    private async void SendMessageToServer(string msg)
+    public async void SendMessageToServer<T>(T packet)
     {
         if (stream == null) return;
 
-        DebugManager.Instance.Debug($"[서버로 보낸 메시지] : {msg}");
-        byte[] body = System.Text.Encoding.UTF8.GetBytes(msg);
+        byte[] body = MessagePack.MessagePackSerializer.Serialize(packet);
         int length = body.Length;
         byte[] header = BitConverter.GetBytes(length);
-        byte[] packet = new byte[4 + length];
+        byte[] sendPacket = new byte[4 + length];
 
-        Buffer.BlockCopy(header, 0, packet, 0, 4);
-        Buffer.BlockCopy(body, 0, packet, 4, length);
+        Buffer.BlockCopy(header, 0, sendPacket, 0, 4);
+        Buffer.BlockCopy(body, 0, sendPacket, 4, length);
 
-        await stream.WriteAsync(packet, 0, packet.Length);
+        await stream.WriteAsync(sendPacket, 0, sendPacket.Length);
     }
 
-    private void HandleServerMessage(string msg)
+    private void HandleServerMessage(byte[] packet)
     {
-        if (string.IsNullOrEmpty(msg))
-        {
-            DebugManager.Instance.Debug("[메시지 없음]");
-            return;
-        }
+        //if (string.IsNullOrEmpty(msg))
+        //{
+        //    DebugManager.Instance.Debug("[메시지 없음]");
+        //    return;
+        //}
 
         //빈 문자열은 제거
-        string[] parts = msg.Split(';', StringSplitOptions.RemoveEmptyEntries);
+        MessagePackBase basePacket = MessagePack.MessagePackSerializer.Deserialize<MessagePackBase>(body);
+        string command = basePacket.Command;
 
-        if (messageHandlers.TryGetValue(parts[0], out IMessageHandler handler))
+        if (messageHandlers.TryGetValue(command, out IMessageHandler handler))
         {
-            DebugManager.Instance.Debug($"[서버에서 넘어온 메시지] : {msg}");
-            handler.Handle(msg);
+            handler.Handle(packet); // 핸들러에서 body를 실제 타입으로 역직렬화
         }
         else
         {
-            DebugManager.Instance.Debug($"[알 수 없는 명령] : {msg}");
+            Debug.LogWarning($"[알 수 없는 명령] : {command}");
         }
     }
 
@@ -194,11 +211,9 @@ public class TcpClientController : Singleton<TcpClientController>
                     bodyRead += read;
                 }
 
-                string msg = System.Text.Encoding.UTF8.GetString(body);
-
                 lock (messageQueue)
                 {
-                    messageQueue.Enqueue(msg);
+                    messageQueue.Enqueue(body);
                 }
             }
         }

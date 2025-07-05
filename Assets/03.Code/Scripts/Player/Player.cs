@@ -57,7 +57,7 @@ public class Player : Players
 
                 Vector3 direction = dir.normalized;
                 string msg = $"input;{id};{dir.x};{dir.y};{dir.z}";
-                TcpClientController.Instance.SendMyInputMessage(msg);
+                TcpClientController.Instance.SendMyInputMessage(direction);
             }
         }
         else

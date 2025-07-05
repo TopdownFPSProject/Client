@@ -4,5 +4,5 @@ using UnityEngine;
 
 public interface IMessageHandler
 {
-    void Handle(string data);
+    void Handle(byte[] data);
 }
