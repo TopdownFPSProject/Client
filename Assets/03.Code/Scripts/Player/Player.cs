@@ -22,11 +22,19 @@ public class Player : Players
     //private float positionThreshold = 0.02f;
     private WaitForSeconds sendTime = new WaitForSeconds(0.25f);
 
+    //마우스 위치
+    private Vector3 myPos;
+    private Vector3 mousePos;
+    private Vector3 screenDir;
+    private Vector3 worldDir;
+    private Quaternion rot;
+
     public void Init(string id, Vector3 position)
     {
         this.id = id;
         idText.text = id;
         targetPosition = position;
+        myPos = transform.position;
     }
 
     protected override void Update()
@@ -38,6 +46,18 @@ public class Player : Players
         if (Input.GetKey(KeyCode.S)) dir += Vector3.back;
         if (Input.GetKey(KeyCode.A)) dir += Vector3.left;
         if (Input.GetKey(KeyCode.D)) dir += Vector3.right;
+
+        //ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        myPos = Camera.main.WorldToScreenPoint(transform.position);
+        mousePos = Input.mousePosition;
+        screenDir = mousePos - myPos;
+        worldDir = new Vector3(screenDir.x, 0, screenDir.y);
+
+        if (worldDir != Vector3.zero)
+        {
+            rot = Quaternion.LookRotation(worldDir);
+            transform.rotation = rot;
+        }
         //if (Input.GetMouseButtonDown(0))
         //{
         //    Fire();
@@ -56,7 +76,6 @@ public class Player : Players
                 sendTimer = 0f;
 
                 Vector3 direction = dir.normalized;
-                string msg = $"input;{id};{dir.x};{dir.y};{dir.z}";
                 TcpClientController.Instance.SendMyInputMessage(direction);
             }
         }
