@@ -1,3 +1,4 @@
+using SharedPacketLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -5,7 +6,7 @@ using UnityEngine;
 
 public class ConnectHandler : IMessageHandler
 {
-    public void Handle(string data)
+    public void Handle(PacketBase packet)
     {
         // playerList 메시지 처리
         //if (msg.command == "playerList")

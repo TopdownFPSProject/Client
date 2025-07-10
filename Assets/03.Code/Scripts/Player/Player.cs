@@ -1,33 +1,142 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
+//[RequireComponent(typeof(Rigidbody))]
 public class Player : Players
 {
     [SerializeField] private TextMeshPro idText;
-    private string id;
+
+    //private Rigidbody rb;
+    //private string id;
+    //private float minSpeed = 0.02f;
+
+    //메시지 전송
+    [SerializeField] private float sendInterval = 0.033f;
+    private float sendTimer = 0f;
+
+    //위치
+    //private Vector3 lastSentPosition;
+    //private float positionThreshold = 0.02f;
+    private WaitForSeconds sendTime = new WaitForSeconds(0.25f);
+
+    //마우스 위치
+    private Vector3 myPos;
+    private Vector3 mousePos;
+    private Vector3 screenDir;
+    private Vector3 worldDir;
+    private Quaternion rot;
 
     public void Init(string id, Vector3 position)
     {
         this.id = id;
         idText.text = id;
-        transform.position = position;
+        targetPosition = position;
+        myPos = transform.position;
     }
 
-    private void Update()
+    protected override void Update()
     {
+        base.Update();
+
         Vector3 dir = Vector3.zero;
         if (Input.GetKey(KeyCode.W)) dir += Vector3.forward;
         if (Input.GetKey(KeyCode.S)) dir += Vector3.back;
         if (Input.GetKey(KeyCode.A)) dir += Vector3.left;
         if (Input.GetKey(KeyCode.D)) dir += Vector3.right;
 
-        bool isMoving = dir.sqrMagnitude > 0.01f;
+        //ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        myPos = Camera.main.WorldToScreenPoint(transform.position);
+        mousePos = Input.mousePosition;
+        screenDir = mousePos - myPos;
+        worldDir = new Vector3(screenDir.x, 0, screenDir.y);
 
-        if (isMoving)
+        if (worldDir != Vector3.zero)
         {
-            //TcpClientController.Instance.SendMoveInput(dir.normalized, isMoving);
+            rot = Quaternion.LookRotation(worldDir);
+            transform.rotation = rot;
+        }
+        //if (Input.GetMouseButtonDown(0))
+        //{
+        //    Fire();
+        //}
+
+        //Move(dir);
+
+        // sendInterval = 0.033f; // 33ms (30fps)
+        if (dir != Vector3.zero)
+        {
+            sendTimer += Time.deltaTime;
+
+            // 0.25초마다 한 번씩 전송
+            if (sendTimer >= sendInterval)
+            {
+                sendTimer = 0f;
+
+                Vector3 direction = dir.normalized;
+                TcpClientController.Instance.SendMyInputMessage(direction);
+            }
+        }
+        else
+        {
+            // 키 입력이 없으면 타이머 초기화 (연속된 이동이 아닐 경우)
+            sendTimer = 0f;
+        }
+    }
+
+    //private void Move(Vector3 inputDir)
+    //{
+    //    if (inputDir != Vector3.zero)
+    //    {
+    //        Vector3 velocity = new Vector3(inputDir.x * moveSpeed, rb.velocity.y, inputDir.z * moveSpeed);
+    //        //rb.velocity = velocity;
+    //    }
+    //    else
+    //    {
+    //        //rb.velocity = new Vector3(0, 0, 0);
+    //    }
+    //}
+
+    private void Fire()
+    {
+        string time = DateTime.Now.ToString();
+        Vector3 position = transform.position;
+        Vector3 forward = transform.forward;
+        //DebugManager.Instance.Debug($"transform.forward : {transform.forward}");
+        print($"fire 호출");
+
+        TcpClientController.Instance.SendFireMessage(time, position, forward);
+    }
+
+    //private IEnumerator SendPositionCoroutine()
+    //{
+    //    while (true)
+    //    {
+    //        if (Vector3.Distance(transform.position, lastSentPosition) > positionThreshold)
+    //        {
+    //            TcpClientController.Instance.SendMyPosition(transform.position);
+    //            lastSentPosition = transform.position;
+    //        }
+    //        //yield return new WaitForSeconds(0.05f);
+    //        yield return sendTime;
+    //    }
+    //}
+
+    float testTimer = 1f;
+    float elapsedTime = 0f;
+    private IEnumerator BulletTestCoroutine()
+    {
+        while (true)
+        {
+            elapsedTime += Time.deltaTime;
+            if (elapsedTime >= testTimer)
+            {
+                elapsedTime = 0f;
+                Fire();
+            }
+            yield return null;
         }
     }
 }
