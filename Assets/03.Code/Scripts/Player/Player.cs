@@ -28,6 +28,7 @@ public class Player : Players
     private Vector3 screenDir;
     private Vector3 worldDir;
     private Quaternion rot;
+    private float angle;
 
     public void Init(string id, Vector3 position)
     {
@@ -52,12 +53,13 @@ public class Player : Players
         mousePos = Input.mousePosition;
         screenDir = mousePos - myPos;
         worldDir = new Vector3(screenDir.x, 0, screenDir.y);
+        rot = Quaternion.LookRotation(worldDir);
+        angle = rot.eulerAngles.y;
 
-        if (worldDir != Vector3.zero)
-        {
-            rot = Quaternion.LookRotation(worldDir);
-            transform.rotation = rot;
-        }
+        //if (worldDir != Vector3.zero)
+        //{
+        //    transform.rotation = rot;
+        //}
         //if (Input.GetMouseButtonDown(0))
         //{
         //    Fire();
@@ -76,7 +78,7 @@ public class Player : Players
                 sendTimer = 0f;
 
                 Vector3 direction = dir.normalized;
-                TcpClientController.Instance.SendMyInputMessage(direction);
+                TcpClientController.Instance.SendMyInputMessage(direction, angle);
             }
         }
         else

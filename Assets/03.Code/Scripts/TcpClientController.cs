@@ -115,7 +115,7 @@ public class TcpClientController : Singleton<TcpClientController>
         SendMessageToServer(packet);
     }
 
-    public void SendMyInputMessage(Vector3 dir)
+    public void SendMyInputMessage(Vector3 dir, float angle)
     {
         if (stream == null) return;
         C_InputPacket packet = new C_InputPacket
@@ -123,7 +123,8 @@ public class TcpClientController : Singleton<TcpClientController>
             Id = myId,
             X = dir.x,
             Y = dir.y,
-            Z = dir.z
+            Z = dir.z,
+            Angle = angle
         };
         SendMessageToServer(packet);
     }
