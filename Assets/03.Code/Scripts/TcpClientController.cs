@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using SharedPacketLib;
+using SharedPacket;
 
 //public class NetworkMessage
 //{
@@ -73,6 +73,8 @@ public class TcpClientController : Singleton<TcpClientController>
         messageHandlers["playerJoined"] = new PlayerJoinedHandler();
         messageHandlers["disconnected"] = new DisconnectHandler();
         messageHandlers["position"] = new SyncPositionHandler();
+        messageHandlers["bullet"] = new FireHandler();
+        messageHandlers["hitInfo"] = new HitHandler();
     }
 
     private void ConnectToServer()
@@ -115,7 +117,7 @@ public class TcpClientController : Singleton<TcpClientController>
         SendMessageToServer(packet);
     }
 
-    public void SendMyInputMessage(Vector3 dir)
+    public void SendMyInputMessage(Vector3 dir, float angle)
     {
         if (stream == null) return;
         C_InputPacket packet = new C_InputPacket
@@ -123,17 +125,38 @@ public class TcpClientController : Singleton<TcpClientController>
             Id = myId,
             X = dir.x,
             Y = dir.y,
-            Z = dir.z
+            Z = dir.z,
+            Angle = angle
         };
         SendMessageToServer(packet);
     }
 
-    public void SendFireMessage(string time, Vector3 position, Vector3 dir)
+    public void SendFireMessage(Vector3 position, float angle)
     {
         if (stream == null) return;
-        string msg = $"fire;{myId};{position.x};{position.y};{position.z};{dir.x};{dir.y};{dir.z};{time}";
+        C_FirePacket packet = new C_FirePacket
+        {
+            Id = myId,
+            X = position.x,
+            Y = position.y,
+            Z = position.z,
+            Angle = angle,
+            SpawnTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+        };
 
-        //SendMessageToServer(msg);
+        SendMessageToServer(packet);
+    }
+
+    public void SendHitMessage(string shooter, string target, long spawnedTime)
+    {
+        C_HitPacket packet = new C_HitPacket
+        {
+            shooter = shooter,
+            target = target,
+            spawnedTime = spawnedTime
+        };
+
+        SendMessageToServer(packet);
     }
     #endregion
 
@@ -156,7 +179,7 @@ public class TcpClientController : Singleton<TcpClientController>
         Buffer.BlockCopy(body, 0, sendPacket, 4, length);
 
         await stream.WriteAsync(sendPacket, 0, sendPacket.Length);
-        print(BitConverter.ToString(body));
+        //print(BitConverter.ToString(body));
     }
 
     private void HandleServerMessage(byte[] packet)

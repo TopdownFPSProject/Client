@@ -11,7 +11,7 @@ public class BulletSpawnManager : Singleton<BulletSpawnManager>
         base.Awake();
     }
 
-    public void Fire(string id, Vector3 spawnPos, Vector3 dir, string time) 
+    public void Fire(string id, Vector3 spawnPos, float dir, long time) 
     {
         GameObject obj = Instantiate(bulletPrefab, spawnPos, Quaternion.identity);
         Bullet bullet = obj.GetComponent<Bullet>();
