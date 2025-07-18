@@ -12,7 +12,7 @@ public class Players : MonoBehaviour
     public string id;
     protected Vector3 targetPosition;
 
-    protected virtual void Update()
+    protected virtual void FixedUpdate()
     {
         float dist = Vector3.Distance(transform.position, targetPosition);
         if (dist > snapThreshold)
@@ -22,13 +22,15 @@ public class Players : MonoBehaviour
         }
         else
         {
-            Debug.Log("부드러운 이동");
+            //Debug.Log("부드러운 이동");
             transform.position = Vector3.Lerp(transform.position, targetPosition, lerpSpeed);
         }
     }
 
-    public void SetServerPosition(Vector3 newPosition)
+    // 실시간으로 위치와 시야 동기화
+    public void SetServerPosition(Vector3 newPosition, float angle)
     {
-        targetPosition = newPosition;    
+        targetPosition = newPosition;
+        transform.rotation = Quaternion.Euler(0, angle, 0);
     }
 }

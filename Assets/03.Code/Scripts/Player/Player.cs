@@ -29,6 +29,7 @@ public class Player : Players
     private Vector3 worldDir;
     private Quaternion rot;
     private float angle;
+    private float preAngle = 0f;
 
     public void Init(string id, Vector3 position)
     {
@@ -38,10 +39,13 @@ public class Player : Players
         myPos = transform.position;
     }
 
-    protected override void Update()
+    protected override void FixedUpdate()
     {
-        base.Update();
+        base.FixedUpdate();
+    }
 
+    private void Update()
+    {
         Vector3 dir = Vector3.zero;
         if (Input.GetKey(KeyCode.W)) dir += Vector3.forward;
         if (Input.GetKey(KeyCode.S)) dir += Vector3.back;
@@ -56,6 +60,8 @@ public class Player : Players
         rot = Quaternion.LookRotation(worldDir);
         angle = rot.eulerAngles.y;
 
+        if (Input.GetMouseButtonDown(0)) TcpClientController.Instance.SendFireMessage(transform.position, angle); 
+
         //if (worldDir != Vector3.zero)
         //{
         //    transform.rotation = rot;
@@ -68,8 +74,10 @@ public class Player : Players
         //Move(dir);
 
         // sendInterval = 0.033f; // 33ms (30fps)
-        if (dir != Vector3.zero)
+        // 움직이거나 시야각이 달라지면 전송
+        if (dir != Vector3.zero || angle != preAngle)
         {
+            preAngle = angle;
             sendTimer += Time.deltaTime;
 
             // 0.25초마다 한 번씩 전송
@@ -101,16 +109,16 @@ public class Player : Players
     //    }
     //}
 
-    private void Fire()
-    {
-        string time = DateTime.Now.ToString();
-        Vector3 position = transform.position;
-        Vector3 forward = transform.forward;
-        //DebugManager.Instance.Debug($"transform.forward : {transform.forward}");
-        print($"fire 호출");
+    //private void Fire()
+    //{
+    //    string time = DateTime.Now.ToString();
+    //    Vector3 position = transform.position;
+    //    Vector3 forward = transform.forward;
+    //    //DebugManager.Instance.Debug($"transform.forward : {transform.forward}");
+    //    print($"fire 호출");
 
-        TcpClientController.Instance.SendFireMessage(time, position, forward);
-    }
+    //    TcpClientController.Instance.SendFireMessage(time, position, forward);
+    //}
 
     //private IEnumerator SendPositionCoroutine()
     //{
@@ -136,7 +144,7 @@ public class Player : Players
             if (elapsedTime >= testTimer)
             {
                 elapsedTime = 0f;
-                Fire();
+                //Fire();
             }
             yield return null;
         }
