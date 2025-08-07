@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 //[RequireComponent(typeof(Rigidbody))]
 public class Player : Players
@@ -31,17 +32,13 @@ public class Player : Players
     private float angle;
     private float preAngle = 0f;
 
-    public void Init(string id, Vector3 position)
+    public override void Init(string id, Vector3 position)
     {
+        base.Init(id, position);
         this.id = id;
         idText.text = id;
         targetPosition = position;
         myPos = transform.position;
-    }
-
-    protected override void FixedUpdate()
-    {
-        base.FixedUpdate();
     }
 
     private void Update()
@@ -60,7 +57,7 @@ public class Player : Players
         rot = Quaternion.LookRotation(worldDir);
         angle = rot.eulerAngles.y;
 
-        if (Input.GetMouseButtonDown(0)) TcpClientController.Instance.SendFireMessage(transform.position, angle); 
+        if (Input.GetMouseButtonDown(0)) TcpClientController.Instance.SendFireMessage(transform.position, angle);
 
         //if (worldDir != Vector3.zero)
         //{
@@ -94,6 +91,8 @@ public class Player : Players
             // 키 입력이 없으면 타이머 초기화 (연속된 이동이 아닐 경우)
             sendTimer = 0f;
         }
+
+        
     }
 
     //private void Move(Vector3 inputDir)

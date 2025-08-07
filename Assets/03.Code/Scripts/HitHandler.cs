@@ -13,10 +13,8 @@ class HitHandler : IMessageHandler
         {
             if (PlayerSpawnManager.Instance.Players.TryGetValue(pac.target, out Players targetPlayer))
             {
-                PlayerSpawnManager.Instance.DestroyPlayerObj(pac.target);
-                DebugManager.Instance.Debug($"{pac.target}가 죽음");
-                Debug.Log($"{pac.target}가 죽음");
-                Debug.Log($"{pac.shooter}가 쏨");
+                //PlayerSpawnManager.Instance.DestroyPlayerObj(pac.target);
+                targetPlayer.TakeDamage(pac.damage);
             }
         }
     }

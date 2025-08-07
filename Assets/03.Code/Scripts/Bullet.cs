@@ -44,6 +44,7 @@ public class Bullet : MonoBehaviour
                 if (player.id == ownerId) return;
                 string myId = TcpClientController.Instance.MyId;
                 TcpClientController.Instance.SendHitMessage(myId, player.id, spawnedTime);
+                //DebugManager.Instance.Debug("총알 맞음");
                 //PlayerSpawnManager.Instance.DestroyPlayerObj(player.id);
             }
         }
