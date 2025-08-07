@@ -1,4 +1,4 @@
-using SharedPacketLib;
+using SharedPacket;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;

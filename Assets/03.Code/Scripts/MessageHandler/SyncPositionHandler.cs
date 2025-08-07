@@ -1,5 +1,5 @@
 using MessagePack;
-using SharedPacketLib;
+using SharedPacket;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,10 +13,11 @@ public class SyncPositionHandler : IMessageHandler
         {
             string id = pac.Id;
             Vector3 pos = new Vector3(pac.X, pac.Y, pac.Z);
+            float angle = pac.Angle;
 
             if (PlayerSpawnManager.Instance.Players.TryGetValue(id, out Players p))
             {
-                p.SetServerPosition(pos);
+                p.SetServerPosition(pos, angle);
             }
         }
     }

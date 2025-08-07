@@ -1,12 +1,21 @@
-using SharedPacketLib;
+using SharedPacket;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class FireHandler : IMessageHandler
 {
-    public void Handle(PacketBase body)
+    public void Handle(PacketBase basePacket)
     {
+        if (basePacket is S_bulletPacket bulletPacket)
+        {
+            string id = bulletPacket.Id;
+            Vector3 spawnPos = new Vector3(bulletPacket.X, bulletPacket.Y, bulletPacket.Z);
+            float angle = bulletPacket.Angle;
+            long spawnTime = bulletPacket.SpawnTime;
+
+            BulletSpawnManager.Instance.Fire(id, spawnPos, angle, spawnTime);
+        }
         //string[] parts = data.Split(';', System.StringSplitOptions.RemoveEmptyEntries);
 
         //string id = parts[1];

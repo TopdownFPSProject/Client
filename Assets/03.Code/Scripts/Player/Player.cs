@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 //[RequireComponent(typeof(Rigidbody))]
 public class Player : Players
@@ -28,19 +29,20 @@ public class Player : Players
     private Vector3 screenDir;
     private Vector3 worldDir;
     private Quaternion rot;
+    private float angle;
+    private float preAngle = 0f;
 
-    public void Init(string id, Vector3 position)
+    public override void Init(string id, Vector3 position)
     {
+        base.Init(id, position);
         this.id = id;
         idText.text = id;
         targetPosition = position;
         myPos = transform.position;
     }
 
-    protected override void Update()
+    private void Update()
     {
-        base.Update();
-
         Vector3 dir = Vector3.zero;
         if (Input.GetKey(KeyCode.W)) dir += Vector3.forward;
         if (Input.GetKey(KeyCode.S)) dir += Vector3.back;
@@ -52,12 +54,15 @@ public class Player : Players
         mousePos = Input.mousePosition;
         screenDir = mousePos - myPos;
         worldDir = new Vector3(screenDir.x, 0, screenDir.y);
+        rot = Quaternion.LookRotation(worldDir);
+        angle = rot.eulerAngles.y;
 
-        if (worldDir != Vector3.zero)
-        {
-            rot = Quaternion.LookRotation(worldDir);
-            transform.rotation = rot;
-        }
+        if (Input.GetMouseButtonDown(0)) TcpClientController.Instance.SendFireMessage(transform.position, angle);
+
+        //if (worldDir != Vector3.zero)
+        //{
+        //    transform.rotation = rot;
+        //}
         //if (Input.GetMouseButtonDown(0))
         //{
         //    Fire();
@@ -66,8 +71,10 @@ public class Player : Players
         //Move(dir);
 
         // sendInterval = 0.033f; // 33ms (30fps)
-        if (dir != Vector3.zero)
+        // 움직이거나 시야각이 달라지면 전송
+        if (dir != Vector3.zero || angle != preAngle)
         {
+            preAngle = angle;
             sendTimer += Time.deltaTime;
 
             // 0.25초마다 한 번씩 전송
@@ -76,7 +83,7 @@ public class Player : Players
                 sendTimer = 0f;
 
                 Vector3 direction = dir.normalized;
-                TcpClientController.Instance.SendMyInputMessage(direction);
+                TcpClientController.Instance.SendMyInputMessage(direction, angle);
             }
         }
         else
@@ -84,6 +91,8 @@ public class Player : Players
             // 키 입력이 없으면 타이머 초기화 (연속된 이동이 아닐 경우)
             sendTimer = 0f;
         }
+
+        
     }
 
     //private void Move(Vector3 inputDir)
@@ -99,16 +108,16 @@ public class Player : Players
     //    }
     //}
 
-    private void Fire()
-    {
-        string time = DateTime.Now.ToString();
-        Vector3 position = transform.position;
-        Vector3 forward = transform.forward;
-        //DebugManager.Instance.Debug($"transform.forward : {transform.forward}");
-        print($"fire 호출");
+    //private void Fire()
+    //{
+    //    string time = DateTime.Now.ToString();
+    //    Vector3 position = transform.position;
+    //    Vector3 forward = transform.forward;
+    //    //DebugManager.Instance.Debug($"transform.forward : {transform.forward}");
+    //    print($"fire 호출");
 
-        TcpClientController.Instance.SendFireMessage(time, position, forward);
-    }
+    //    TcpClientController.Instance.SendFireMessage(time, position, forward);
+    //}
 
     //private IEnumerator SendPositionCoroutine()
     //{
@@ -134,7 +143,7 @@ public class Player : Players
             if (elapsedTime >= testTimer)
             {
                 elapsedTime = 0f;
-                Fire();
+                //Fire();
             }
             yield return null;
         }

@@ -7,8 +7,9 @@ public class OtherPlayer : Players
 {
     [SerializeField] private TextMeshPro idText;
 
-    public void Init(string id, Vector3 position)
+    public override void Init(string id, Vector3 position)
     {
+        base.Init(id, position);
         this.id = id;
         idText.text = id;
         //transform.position = position;

@@ -6,9 +6,9 @@ public class Bullet : MonoBehaviour
 {
     [SerializeField] private float moveSpeed;
     private string ownerId;
-    private string spawnedTime;
+    private long spawnedTime;
     private Vector3 spawnedPos;
-    private Vector3 dir;
+    private float angle;
     private bool isSpawned = false;
 
     private void Start()
@@ -16,20 +16,22 @@ public class Bullet : MonoBehaviour
         Destroy(gameObject, 3f);
     }
 
-    public void Init(string id, Vector3 spawnedPos, Vector3 dir, string time)
+    public void Init(string id, Vector3 spawnedPos, float angle, long time)
     {
         ownerId = id;
         spawnedTime = time;
         this.spawnedPos = spawnedPos;
-        this.dir = dir;
+        this.angle = angle;
         isSpawned = true;
+        transform.rotation = Quaternion.Euler(0, angle, 0);
     }
 
     private void Update()
     {
         if (!isSpawned) return;
 
-        transform.Translate(dir * moveSpeed * Time.deltaTime);
+        //transform.rotation = Quaternion.Euler(0, angle, 0);
+        transform.Translate(Vector3.forward * moveSpeed * Time.deltaTime);
         //DebugManager.Instance.Debug($"dir : {dir}, moveSpeed : {moveSpeed}");
     }
 
@@ -40,8 +42,16 @@ public class Bullet : MonoBehaviour
             if (other.TryGetComponent<Players>(out Players player))
             {
                 if (player.id == ownerId) return;
-                PlayerSpawnManager.Instance.DestroyPlayerObj(player.id);
+                string myId = TcpClientController.Instance.MyId;
+                TcpClientController.Instance.SendHitMessage(myId, player.id, spawnedTime);
+                //DebugManager.Instance.Debug("총알 맞음");
+                //PlayerSpawnManager.Instance.DestroyPlayerObj(player.id);
             }
         }
+    }
+
+    public void Test()
+    {
+
     }
 }
