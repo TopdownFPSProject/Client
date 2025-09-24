@@ -37,6 +37,9 @@ public class Bullet : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        // 내가 보낸 총알이 아니면 보내지 않는다
+        if (ownerId != TcpClientController.Instance.MyId) return;
+
         if (other.gameObject.CompareTag("Hitable"))
         {
             if (other.TryGetComponent<Players>(out Players player))
