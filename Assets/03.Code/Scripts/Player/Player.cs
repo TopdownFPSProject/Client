@@ -36,13 +36,13 @@ public class Player : Players
     {
         base.Init(id, position);
         this.id = id;
-        idText.text = id;
         targetPosition = position;
         myPos = transform.position;
     }
 
-    private void Update()
+    protected override void Update()
     {
+        base.Update();
         Vector3 dir = Vector3.zero;
         if (Input.GetKey(KeyCode.W)) dir += Vector3.forward;
         if (Input.GetKey(KeyCode.S)) dir += Vector3.back;

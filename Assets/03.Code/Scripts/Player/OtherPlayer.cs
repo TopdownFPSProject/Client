@@ -11,7 +11,6 @@ public class OtherPlayer : Players
     {
         base.Init(id, position);
         this.id = id;
-        idText.text = id;
         //transform.position = position;
         targetPosition = position;
     }
