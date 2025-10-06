@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7474627872802873088}
   - component: {fileID: 177890225737615723}
   - component: {fileID: 8983696081274548598}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: HpBar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -89,9 +89,9 @@ GameObject:
   - component: {fileID: 9011132171082290715}
   - component: {fileID: 62392415569138761}
   - component: {fileID: 8046412704649637269}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Player
-  m_TagString: Hitable
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -244,7 +244,7 @@ GameObject:
   - component: {fileID: 1002017867363559946}
   - component: {fileID: 1552491722913766475}
   - component: {fileID: 3411721306601925992}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: HpBackground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -321,7 +321,7 @@ GameObject:
   - component: {fileID: 6141461028951635646}
   - component: {fileID: 6632921029808644453}
   - component: {fileID: 3394982142775169502}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -423,7 +423,7 @@ GameObject:
   - component: {fileID: 4857364196373159872}
   - component: {fileID: 1580884910027976339}
   - component: {fileID: 2381007682486381025}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Eyes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
